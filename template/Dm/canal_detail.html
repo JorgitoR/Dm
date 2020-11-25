@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+
+{% block contenedor %}
+
+	<h3>Identificador del canal: {{object.id}}</h3>
+
+	<h1>Mensajes del canal</h1>
+
+	{% for mensaje in object.canalmensaje_set.all %}	
+
+			{% if request.user == mensaje.usuario %}
+				<p>
+					<strong>
+						{{mensaje.texto}} 
+					</strong>
+					<span>
+						Lo enviastes tu
+					</span>
+				</p>		
+			{% else %}
+				<p>
+
+					{{mensaje.texto}}
+					<span>
+						{{mensaje.usuario}}
+					</span>
+				</p>
+			{% endif %}
+
+
+	{% endfor %}
+
+
+	<h1>Usuarios del Canl</h1>
+
+	{% for usuarios in object.canalusuario_set.all %}
+
+			<p>
+				{{usuarios.usuario}}
+			</p>
+
+	{% endfor %}
+
+{% endblock %}
