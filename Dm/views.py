@@ -1,17 +1,38 @@
 from django.shortcuts import render
-
 from django.views.generic import DetailView
-
 from django.contrib.auth.mixins import LoginRequiredMixin
-
 from django.core.exceptions import PermissionDenied
-
 from .models import CanalMensaje, CanalUsuario, Canal
 from django.http import HttpResponse, Http404
 
+from .forms import FormMensajes
 
+from django.views.generic.edit import FormMixin
 
-class CanalDetailView(LoginRequiredMixin, DetailView):
+class CanalFormMixin(FormMixin):
+	form_class =FormMensajes
+	#success_url = "./"
+
+	def get_success_url(self):
+		return self.request.path
+
+	def post(self, request, *args, **kwargs):
+
+		if not request.user.is_authenticated:
+			raise PermissionDenied
+
+		form = self.get_form()
+		if form.is_valid():
+			canal = self.get_object()
+			usuario = self.request.user 
+			mensaje = form.cleaned_data.get("mensaje")
+			canal_obj = CanalMensaje.objects.create(canal=canal, usuario=usuario, texto=mensaje)
+			return super().form_valid(form)
+
+		else:
+			return super().form_invalid(form)
+
+class CanalDetailView(LoginRequiredMixin, CanalFormMixin, DetailView):
 	template_name= 'Dm/canal_detail.html'
 	queryset = Canal.objects.all()
 
