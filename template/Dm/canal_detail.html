@@ -1,56 +1,168 @@
 {% extends 'base.html' %}
 
-
 {% block contenedor %}
+	
+	<style>
+		
+		#contenedor_ms{
+			width: 100%;
+			height: calc(70vh);
+			margin: 5px 0;
+			overflow-y: auto;
+			border-bottom: 1px solid #e6e6e6;
+			background: #fff;
+		}
+
+		.div_ms{
+			margin: 1.2rem auto;
+			width: 35%;
+			padding: 0.2rem 0.6rem 02rem 0.6rem;
+
+		}
+		.mis_mensajes{
+			margin-right: 5px;
+			background-color:rgb(29, 161, 242);
+			color: #fff;
+			border-bottom-left-radius: 16px;
+			border-top-left-radius: 16px;
+			border-top-right-radius: 16px;
+		}
+
+		.tus_mensajes{
+			background: rgb(230, 236, 240);
+			margin-left: 5px;
+			border-bottom-right-radius: 16px;
+			border-top-left-radius: 16px;
+			border-top-right-radius: 16px;
+
+		}
+
+		.div_form_ms{
+			width: 100%;
+			margin-top: 5px;
+			margin-bottom: 5px;
+			margin-left: -3px;
+			border:1px solid #e6e6e6;
+		}
+
+		#id_mensaje{
+			display: block;
+			padding: 6px 12px;
+			margin-left: 1%;
+			margin-right: 1%;
+			width: 98%;
+			min-width: 98%;
+			max-width: 98%;
+			height: 70px;
+			min-height: 70px;
+			max-height: 70px;
+			box-sizing: border-box;
+			font-size: 14px;
+			color: #333;
+			border:1px solid #ccc;
+			border-radius: 4px;
+
+		}
+
+		.btn_enviar{
+			background: #98ca3f;
+			color: #fff;
+			padding: 5px 10px;
+			border-radius: 5px;
+			border:none;
+			outline: none;
+			border-bottom: 5px solid #6d932b;
+			width: 150px;
+			cursor: pointer;
+			display: block;
+			margin: 10px auto;
+			font-size: 13px;
+			transition: 0.3;
+			
+		}
+
+	</style>
+
 
 	<h3>Identificador del canal: {{object.id}}</h3>
 
 	<h1>Mensajes del canal</h1>
 
+	<div id="contenedor_ms">
 	{% for mensaje in object.canalmensaje_set.all %}	
-
-			{% if request.user == mensaje.usuario %}
-				<p>
-					<strong>
-						{{mensaje.texto}} 
-					</strong>
-					<span>
-						Lo enviastes tu
-					</span>
-				</p>		
-			{% else %}
-				<p>
-
-					{{mensaje.texto}}
-					<span>
-						{{mensaje.usuario}}
-					</span>
-				</p>
-			{% endif %}
-
+		<div class="div_ms {% if request.user == mensaje.usuario %}mis_mensajes
+		{% else %} tus_mensajes{% endif %}">
+			<small>{{mensaje.usuario}}</small>
+			<p>{{mensaje.texto}}</p>
+			<small>{{mensaje.tiempo}}</small>
+		</div>
 
 	{% endfor %}
+	</div>
+	<div class="div_form_ms">
+		<form id="form_submit" action="{{ request.path }}" method="POST">
+			{% csrf_token %}
 
+			{{form.as_p}}
 
-	<h1>Usuarios del Canl</h1>
-
-	{% for usuarios in object.canalusuario_set.all %}
-
-			<p>
-				{{usuarios.usuario}}
-			</p>
-
-	{% endfor %}
-
-	<form action="{{ request.path }}" method="POST">
-		{% csrf_token %}
-
-		{{form.as_p}}
-
-		<button type="submit">
-			Enviar
-		</button>
+			<button type="submit" class="btn_enviar">
+				Enviar
+			</button>
 
 	</form>
+
+	</div>
+
+<script>
+
+	const MsgForm = document.getElementById("form_submit")
+	const msgContainer = document.getElementById("contenedor_ms")
+
+
+	MsgForm.addEventListener("submit", (event) => {
+
+		event.preventDefault()
+
+		const  targetDate = event.target 
+		const formData = new FormData(targetDate)
+
+		const xhr = new XMLHttpRequest() // ajax fetch
+
+
+		const endpoint = MsgForm.getAttribute("action")
+		const method = MsgForm.getAttribute("method")
+		xhr.open(method, endpoint)
+
+		xhr.responseType = 'json'
+
+		xhr.setRequestHeader("HTTP_X_REQUESTED_WITH", "XMLHttpRequest")
+		xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest")
+
+		xhr.onload = () =>{
+
+			console.log(xhr.status, xhr.response)
+
+			if(xhr.status === 201){
+				const respuestaData = xhr.response
+				let actualMensajeHtml = msgContainer.innerHTML
+				actualMensajeHtml += `<div class=''><b>${respuestaData.username}</b><p>${respuestaData.mensaje}</p></div>` 
+				msgContainer.innerHTML = actualMensajeHtml
+				MsgForm.reset()
+			}else if(xhr.status === 400){
+				console.log(hxr.response)
+			}else{
+				alert("Un error ocurrio, por favor trata luego")
+			}
+
+		}
+
+		xhr.send(formData)
+
+
+	})
+	
+
+
+</script>
 
 {% endblock %}

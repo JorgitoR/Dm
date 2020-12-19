@@ -3,11 +3,27 @@ from django.views.generic import DetailView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import PermissionDenied
 from .models import CanalMensaje, CanalUsuario, Canal
-from django.http import HttpResponse, Http404
+from django.http import HttpResponse, Http404, JsonResponse
 
 from .forms import FormMensajes
 
 from django.views.generic.edit import FormMixin
+
+from django.views.generic import View
+
+class Inbox(View):
+	def get(self, request):
+
+		inbox = Canal.objects.filter(canalusuario__usuario__in=[request.user.id])
+
+
+		context = {
+
+			"inbox":inbox
+		}
+
+		return render(request, 'inbox.html', context)
+
 
 class CanalFormMixin(FormMixin):
 	form_class =FormMensajes
@@ -27,9 +43,21 @@ class CanalFormMixin(FormMixin):
 			usuario = self.request.user 
 			mensaje = form.cleaned_data.get("mensaje")
 			canal_obj = CanalMensaje.objects.create(canal=canal, usuario=usuario, texto=mensaje)
+			
+			if request.is_ajax():
+				return JsonResponse({
+
+					'mensaje':canal_obj.texto,
+					'username':canal_obj.usuario.username
+					}, status=201)
+
 			return super().form_valid(form)
 
 		else:
+
+			if request.is_ajax():
+				return JsonResponse({"Error":form.errors}, status=400)
+
 			return super().form_invalid(form)
 
 class CanalDetailView(LoginRequiredMixin, CanalFormMixin, DetailView):
@@ -56,7 +84,7 @@ class CanalDetailView(LoginRequiredMixin, CanalFormMixin, DetailView):
 	#	qs = Canal.objects.all().filtrar_por_username(username)
 	#	return qs
 
-class DetailMs(LoginRequiredMixin, DetailView):
+class DetailMs(LoginRequiredMixin, CanalFormMixin, DetailView):
 
 	template_name= 'Dm/canal_detail.html'
 

@@ -4,7 +4,8 @@ from .views import (
 
 	mensajes_privados,
 	DetailMs,
-	CanalDetailView
+	CanalDetailView,
+	Inbox
 	
 
 )
@@ -16,5 +17,7 @@ urlpatterns=[
 	re_path(UUID_CANAL_REGEX, CanalDetailView.as_view()),
 	path("dm/<str:username>", mensajes_privados),
 	path("ms/<str:username>", DetailMs.as_view(), name="detailms"),
+
+	path("", Inbox.as_view(), name="inbox"),
 
 ]

@@ -1,0 +1,24 @@
+Vamos a filtrar todo los mensajes de nuestra canal Usuario, de esta forma
+verlos visibles en nuestro Inbox, o en nuestra primera interfaz de nuestro 
+aplicativo en el navegador. 
+
+Para esto crearemos una clase y le daremos por nombre Inbox.
+y dentro de nuestra clase crearemos nuestro metodo def get
+
+class inbox(View):
+    def get(self, request):
+
+        dialogos = Channel.objects.filter(chaneluser__user__in=[request.user.id])
+
+
+        context = {
+
+            'dialogo':dialogos,
+        }
+        return render(request, 'inicio.html', context)
+
+
+ Nuestro dicionario  le daremos por defecto context, y nuestro key o nuestra llave 
+ principal retornara el queryset de todo los canales correspondientes. 
+
+ 
